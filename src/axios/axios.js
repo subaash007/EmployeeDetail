@@ -11,7 +11,8 @@ const empApi = axios.create({
 const empEndpoint = {
     get:'/employee',
     create:'/employee',
-    update:'/employee/:id'
+    update:'/employee/',
+    getEmployeeByID:'/employee/'
 }
 
 export {empApi,empEndpoint}

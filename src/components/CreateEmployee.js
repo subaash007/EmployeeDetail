@@ -1,5 +1,7 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useParams } from "react-router"
 import { empApi, empEndpoint } from "../axios/axios"
+import {toast} from 'react-toastify'
 
 function CreateEmployee() {
 
@@ -9,9 +11,9 @@ function CreateEmployee() {
     const [department, setDepartment] = useState('')
     const [position, setPosition] = useState('')
     const [salary, setSalary] = useState('')
+    const [empId, setEmpId] = useState(null)
 
-    const addEmployee =(event) =>{
-        event.preventDefault()
+    const addEmployee =() =>{
         const payload = {
             firstName: firstName,
             lastName: lastName,
@@ -22,19 +24,93 @@ function CreateEmployee() {
         }
         empApi.post(empEndpoint.create,payload)
             .then(res => {
-                console.log(res.data.data);
+                toast.success('Added New Employee',{
+                    position: toast.POSITION.TOP_CENTER,
+                    autoClose: 2000,
+                })
+            })
+            .catch(err => {
+                toast.warning('Cannot save data',{
+                    position: toast.POSITION.TOP_CENTER,
+                    autoClose: 2000,
+                })
+            })
+    }
+    const updateEmployee =() =>{
+        const payload = {
+            firstName: firstName,
+            lastName: lastName,
+            dateOfJoin: dateOfJoin,
+            department: department,
+            salary: salary,
+            position: position,
+        }
+        const params = {
+            id:empId
+        }
+        empApi.put(empEndpoint.update,{params},payload)
+            .then(res => {
+                toast.success('Updated Employee details',{
+                    position: toast.POSITION.TOP_CENTER,
+                    autoClose: 2000,
+                })
+            })
+            .catch(err => {
+                toast.warning('Cannot update details',{
+                    position: toast.POSITION.TOP_CENTER,
+                    autoClose: 2000,
+                })
+            })
+    }
+    const {id} = useParams();
+    
+    useEffect(() => {
+        if(id){
+            setEmpId(id)
+            getEmployeeById(id)
+        }
+    },[id])
+    const getEmployeeById = (id) =>{
+        console.log(id);
+        const params = {
+            id:id
+        }
+        empApi.get(empEndpoint.getEmployeeByID,{params:params})
+            .then(res => {
+                const result = res.data.data;
+                setFirstName(result.firstName)
+                setLastName(result.lastName)
+                setDepartment(result.department)
+                setPosition(result.position)
+                setDepartment(result.department)
+                setDateOfJoin(result.dateOfJoin)
+                setEmpId(result._id)
             })
             .catch(err => {
                 console.log(err);
             })
     }
+    const submit =(event) =>{
+        event.preventDefault()
+        if(empId){
+            updateEmployee()
+        }
+        else{
+            addEmployee()
+        }
+    }
 
     return(<div className="create-employee">
         <div className="employee-block" >
         <div>
-            <h4>Add new Employee</h4>
+            <h4>{empId ? 'Edit Employee details':  'Add new Employee'}</h4>
         </div>
-        <form className="w-100 d-flex align-items-center flex-column"  onSubmit={addEmployee} >
+        <form className="w-100 d-flex align-items-center flex-column"  onSubmit={submit} >
+            {empId ?
+            <div className="input-block" >
+                <label className="input-label" >Employee Id </label>
+                <input className="input-field" value={empId} disabled placeholder="Enter First Name" type="text"/>
+            </div> : ''}
             <div className="input-block" >
                 <label className="input-label" >First Name </label>
                 <input className="input-field" value={firstName} onChange={(e)=> setFirstName(e.target.value)} minLength="3" placeholder="Enter First Name" type="text" required/>
@@ -59,7 +135,7 @@ function CreateEmployee() {
                 <label className="input-label" >Salary </label>
                 <input className="input-field" value={salary} onChange={(e)=> setSalary(e.target.value)} min="100" placeholder="Enter Salary" type="number" required/>
             </div>
-            <button type="submit" className="form-btn" >Add Employee</button>
+            <button type="submit" className="form-btn" >{ empId ? 'Update' : 'Add Employee'}</button>
         </form>
         </div>
     </div>)
