@@ -62,7 +62,6 @@ function CreateEmployee() {
             <button type="submit" className="form-btn" >Add Employee</button>
         </form>
         </div>
-
     </div>)
 }
 
